@@ -1,0 +1,7 @@
+# Local working notes (never commit)
+NOTES.md
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
