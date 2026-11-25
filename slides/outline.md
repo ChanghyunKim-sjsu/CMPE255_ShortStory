@@ -66,7 +66,7 @@ Time budget: 13 slides, about 45 s each = about 10 min. Cut slide 7 or 12 if run
 - Horizons: 15 / 30 / 60 min ahead (12 steps of 5 min).
 - Industry adds negative ETA: share of errors above a threshold.
 - FaST also reports R2 and long horizons up to 672 steps (one week at 15 min).
-- Figure: small formula strip plus one example number line showing why RMSE > MAE with an outlier.
+- Figure: `figures/metrics_example.png` (done, optional extra slide 9b in the pptx). Made-up numbers: same MAE 4.0 but RMSE 4.0 vs 7.2 (one big miss); same 5 km/h error gives MAPE 8.3% at 60 km/h but 100% at 5 km/h. Say it is an illustration, not a result from the papers. Skip it if running long.
 
 ## 10. Evidence 1: IGSTGNN, incidents help (60 s)
 - Message: adding incident information improves forecasts, but gains are modest and data dependent.

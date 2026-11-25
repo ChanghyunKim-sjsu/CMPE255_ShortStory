@@ -4,7 +4,9 @@ Run:  python3 figures/make_charts.py
 Outputs (1920x1080 PNG, 16:9):
   figures/ablation_igstgnn.png   IGSTGNN Table 5 (arXiv 2602.02528)
   figures/memory_fast_672.png    FaST Table 4 (arXiv 2601.05174)
+  figures/metrics_example.png    Illustrative MAE / RMSE / MAPE example (made-up numbers)
 """
+import math
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -144,7 +146,82 @@ def chart_memory():
     plt.close(fig)
 
 
+# ---------------------------------------------------------------- metrics example
+# Illustrative numbers (NOT from the papers): speed errors at 5 sensors, in km/h.
+ERR_A = [4, 4, 4, 4, 4]
+ERR_B = [1, 1, 1, 1, 16]
+ORANGE = "#f47230"  # the one big miss
+
+
+def mae(e):
+    return sum(abs(x) for x in e) / len(e)
+
+
+def rmse(e):
+    return math.sqrt(sum(x * x for x in e) / len(e))
+
+
+def chart_metrics():
+    print(f"Model A: MAE {mae(ERR_A):.1f}, RMSE {rmse(ERR_A):.1f}; "
+          f"Model B: MAE {mae(ERR_B):.1f}, RMSE {rmse(ERR_B):.1f}")
+    mape_cases = [("true speed 60 km/h", 5 / 60 * 100), ("true speed 5 km/h", 5 / 5 * 100)]
+    for n, v in mape_cases:
+        print(f"MAPE {n}, abs. error 5: {v:.1f}%")
+
+    fig = plt.figure(figsize=(13.333, 7.5), dpi=144)
+    gs = fig.add_gridspec(2, 2, width_ratios=[1.25, 1], left=0.07, right=0.97, top=0.80, bottom=0.14,
+                          hspace=0.75, wspace=0.28)
+    ax_a, ax_b = fig.add_subplot(gs[0, 0]), fig.add_subplot(gs[1, 0])
+    ax_m = fig.add_subplot(gs[:, 1])
+
+    for ax, errs, name in [(ax_a, ERR_A, "Model A: steady errors"), (ax_b, ERR_B, "Model B: one big miss")]:
+        ax.grid(axis="y", color=GRID, linewidth=1)
+        ax.set_axisbelow(True)
+        ax.tick_params(length=0)
+        cols = [ORANGE if e == max(errs) and errs is ERR_B else HIGHLIGHT for e in errs]
+        ax.bar(range(1, 6), errs, color=cols, width=0.55)
+        for i, e in enumerate(errs, start=1):
+            ax.text(i, e + 0.6, f"{e}", ha="center", fontsize=13, color=TEXT)
+        ax.set_ylim(0, 25)
+        ax.set_yticks([0, 8, 16])
+        ax.set_xticks(range(1, 6))
+        ax.set_xticklabels([f"sensor {i}" for i in range(1, 6)], fontsize=12)
+        ax.tick_params(axis="y", labelsize=12)
+        ax.set_title(name, fontsize=15, color=TEXT, loc="left")
+        ax.text(5.45, 22.5, f"MAE {mae(errs):.1f}   RMSE {rmse(errs):.1f}", ha="right", va="center",
+                fontsize=16, fontweight="bold", color=TEXT)
+        ax.spines["bottom"].set_color(GRID)
+    ax_a.set_ylabel("absolute error (km/h)", fontsize=12)
+    ax_b.set_ylabel("absolute error (km/h)", fontsize=12)
+
+    ax_m.grid(axis="y", color=GRID, linewidth=1)
+    ax_m.set_axisbelow(True)
+    ax_m.tick_params(length=0)
+    vals = [v for _, v in mape_cases]
+    ax_m.bar([0, 1], vals, color=[HIGHLIGHT, ORANGE], width=0.5)
+    for x, v in zip([0, 1], vals):
+        ax_m.text(x, v + 2, f"{v:.0f}%" if v >= 99 else f"{v:.1f}%", ha="center", fontsize=16, fontweight="bold", color=TEXT)
+    ax_m.set_xticks([0, 1])
+    ax_m.set_xticklabels([f"{n}\nerror 5 km/h" for n, _ in mape_cases], fontsize=13)
+    ax_m.set_ylim(0, 118)
+    ax_m.set_yticks([0, 25, 50, 75, 100])
+    ax_m.set_yticklabels([f"{t}%" for t in [0, 25, 50, 75, 100]], fontsize=12)
+    ax_m.set_title("MAPE for the same 5 km/h error", fontsize=15, color=TEXT, loc="left")
+    ax_m.spines["bottom"].set_color(GRID)
+
+    fig.suptitle("Same MAE, different RMSE. Same error, very different MAPE.",
+                 x=0.04, ha="left", fontsize=22, fontweight="bold", color=TEXT)
+    fig.text(0.04, 0.905, "Left: RMSE punishes one big miss. Right: MAPE explodes when the true value is near zero.",
+             fontsize=13, color=TEXT_2)
+    fig.text(0.04, 0.03, "Illustrative example with made-up numbers (not from the papers). "
+             "MAE = mean |error|; RMSE = sqrt(mean error^2); MAPE = mean |error| / |true value|.",
+             fontsize=10.5, color=TEXT_2)
+    fig.savefig(OUT / "metrics_example.png")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     chart_ablation()
     chart_memory()
+    chart_metrics()
     print("saved to", OUT)
