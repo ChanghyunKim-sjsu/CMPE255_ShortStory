@@ -5,6 +5,7 @@ Outputs (1920x1080 PNG, 16:9):
   figures/ablation_igstgnn.png   IGSTGNN Table 5 (arXiv 2602.02528)
   figures/memory_fast_672.png    FaST Table 4 (arXiv 2601.05174)
   figures/metrics_example.png    Illustrative MAE / RMSE / MAPE example (made-up numbers)
+  figures/industry_vs_academia.png  Table image (Medium has no tables), survey Table 4
 """
 import math
 from pathlib import Path
@@ -220,8 +221,48 @@ def chart_metrics():
     plt.close(fig)
 
 
+# ---------------------------------------------------------------- industry vs academia table
+TABLE_ROWS = [
+    ("Graph node", "Sensor", "Road segment"),
+    ("Models", "Mostly GCN-based (16 of 31 in Table 3)", "Graph Network · H-STGCN · ConSTGAT"),
+    ("Metrics", "MAE, RMSE, MAPE", "Also negative ETA (errors above a threshold)"),
+    ("Loss", "Not listed in Table 3", "Huber (Google) · L1 (Amap) · Huber + APE (Baidu)"),
+    ("Deployed", "Not listed in Table 3", "Google: yes · Baidu: yes · Amap: not mentioned"),
+    ("Code and data", "Public datasets; some code", "Not released"),
+]
+
+
+def chart_table():
+    fig = plt.figure(figsize=(13.333, 6.4), dpi=144)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_xlim(0, 13.333)
+    ax.set_ylim(0, 6.4)
+    ax.axis("off")
+    cols = [0.5, 2.9, 7.0]  # x starts
+    widths = [2.4, 4.1, 5.8]
+    top, row_h = 4.85, 0.62
+    ax.text(0.5, 5.95, "Industry and academia: same models, different setting", fontsize=22,
+            fontweight="bold", color=TEXT, va="center")
+    heads = ["", "Academia (typical)", "Industry (Google, Amap, Baidu)"]
+    ax.add_patch(plt.Rectangle((0.5, top), 12.3, row_h, color="#1B2B4B"))
+    for x, h in zip(cols, heads):
+        ax.text(x + 0.15, top + row_h / 2, h, fontsize=15, fontweight="bold", color="#ffffff", va="center")
+    for i, row in enumerate(TABLE_ROWS):
+        y = top - (i + 1) * row_h
+        if i % 2 == 0:
+            ax.add_patch(plt.Rectangle((0.5, y), 12.3, row_h, color="#EEF2F7"))
+        for j, (x, t) in enumerate(zip(cols, row)):
+            ax.text(x + 0.15, y + row_h / 2, t, fontsize=14, color=TEXT, va="center",
+                    fontweight="bold" if j == 0 else "normal")
+    ax.text(0.5, 0.5, "Source: Xue et al., Data Mining in Transportation Networks with GNNs, arXiv 2501.16656 "
+            "(Table 4, Sections 4.1 and 4.2). Table drawn by the author.", fontsize=10.5, color=TEXT_2, va="center")
+    fig.savefig(OUT / "industry_vs_academia.png")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     chart_ablation()
     chart_memory()
     chart_metrics()
+    chart_table()
     print("saved to", OUT)
